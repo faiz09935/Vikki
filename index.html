@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Student Marksheet & Result Generator Portal</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Form Panel (Hidden on Print) -->
+    <header class="app-header no-print">
+      <div class="header-content">
+        <h1>Institutional Marksheet & Transcript Generator</h1>
+        <p>Configure institution details, student credentials, and dynamic subject scoring parameters.</p>
+      </div>
+    </header>
+
+    <div class="form-wrapper no-print">
+      <!-- Institute & Student Information -->
+      <div class="card">
+        <h2 class="section-title">1. Institution & Candidate Information</h2>
+        <div class="grid-form">
+          <div class="form-group span-2">
+            <label for="collegeName">Institution / University / School Name</label>
+            <input type="text" id="collegeName" placeholder="e.g., Institute of Technology & Management" value="Apex Institute of Technology & Management" />
+          </div>
+          <div class="form-group span-2">
+            <label for="collegeAddress">Institution Address / Affiliation Details</label>
+            <input type="text" id="collegeAddress" placeholder="e.g., Knowledge Park III, Greater Noida, UP - 201306 (Affiliated to State Technical Board)" value="Affiliated to State Technical University | Approved by AICTE, New Delhi" />
+          </div>
+          <div class="form-group">
+            <label for="studentName">Candidate Full Name</label>
+            <input type="text" id="studentName" placeholder="e.g., Alex Johnson" value="Vikki Tiwari" />
+          </div>
+          <div class="form-group">
+            <label for="rollNumber">Roll / Registration Number</label>
+            <input type="text" id="rollNumber" placeholder="e.g., 2026BCA0482" value="2026BCA0482" />
+          </div>
+          <div class="form-group">
+            <label for="courseName">Course / Class Name</label>
+            <input type="text" id="courseName" placeholder="e.g., Bachelor of Computer Applications (BCA)" value="Bachelor of Computer Applications (BCA)" />
+          </div>
+          <div class="form-group">
+            <label for="examSession">Academic Session / Semester</label>
+            <input type="text" id="examSession" placeholder="e.g., Semester II Examination 2025-2026" value="Semester II Examination 2025-2026" />
+          </div>
+
+          <!-- File Uploads -->
+          <div class="form-group">
+            <label for="logoInput">Institution Logo (JPG/PNG)</label>
+            <input type="file" id="logoInput" accept="image/*" />
+            <span class="file-hint">A default academic crest is used if no image is uploaded.</span>
+          </div>
+          <div class="form-group">
+            <label for="photoInput">Candidate Photograph (JPG/PNG)</label>
+            <input type="file" id="photoInput" accept="image/*" />
+            <span class="file-hint">A default candidate silhouette is used if no image is uploaded.</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Subject Marks Configuration -->
+      <div class="card">
+        <div class="card-header-flex">
+          <div>
+            <h2 class="section-title">2. Subject Marks Configuration</h2>
+            <p class="section-subtitle">Set individual Written and Practical maximum & obtained scores. Toggle practical requirements per subject.</p>
+          </div>
+          <button type="button" class="btn btn-secondary" id="addSubjectBtn">+ Add Subject</button>
+        </div>
+
+        <div class="table-responsive">
+          <table class="config-table" id="inputTable">
+            <thead>
+              <tr>
+                <th>Subject Name</th>
+                <th>Has Practical?</th>
+                <th>Written Max</th>
+                <th>Written Obtained</th>
+                <th>Practical Max</th>
+                <th>Practical Obtained</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="subjectInputRows">
+              <!-- Dynamically populated rows -->
+            </tbody>
+          </table>
+        </div>
+
+        <div class="error-box" id="errorBox" style="display: none;"></div>
+
+        <div class="action-bar">
+          <button type="button" class="btn btn-primary" id="generateBtn">Generate Official Marksheet</button>
+          <button type="button" class="btn btn-outline" id="loadSampleBtn">Load Standard Sample</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Marksheet Preview & Print Area -->
+    <div id="resultContainer" class="result-container" style="display: none;">
+      <div class="preview-controls no-print">
+        <div class="preview-status-pill">Document Generated Successfully</div>
+        <div class="button-group">
+          <button type="button" class="btn btn-primary print-action-btn" onclick="window.print()">
+            Print / Save as PDF
+          </button>
+          <button type="button" class="btn btn-outline" id="editInputsBtn">
+            Modify Data
+          </button>
+        </div>
+      </div>
+
+      <!-- Professional Printable Document (MS Word / Formal Certificate Layout) -->
+      <div class="formal-document" id="printableArea">
+        <div class="inner-border-wrapper">
+          
+          <!-- Document Header -->
+          <div class="doc-header">
+            <div class="institute-logo-box">
+              <img id="renderLogo" src="" alt="Institution Logo" />
+            </div>
+            <div class="institute-details">
+              <h1 id="renderCollegeName" class="college-title">APEX INSTITUTE OF TECHNOLOGY &amp; MANAGEMENT</h1>
+              <p id="renderCollegeAddress" class="college-subtext">Affiliated to State Technical University | Approved by AICTE, New Delhi</p>
+              <div class="report-badge">STATEMENT OF MARKS &amp; ACADEMIC RECORD</div>
+            </div>
+            <div class="candidate-photo-box">
+              <img id="renderPhoto" src="" alt="Candidate Photo" />
+            </div>
+          </div>
+
+          <hr class="header-divider" />
+
+          <!-- Student Profile Grid -->
+          <div class="student-meta-grid">
+            <div class="meta-item">
+              <span class="meta-label">Candidate Name:</span>
+              <span class="meta-value" id="renderStudentName">VIKKI TIWARI</span>
+            </div>
+            <div class="meta-item">
+              <span class="meta-label">Roll Number:</span>
+              <span class="meta-value" id="renderRollNumber">2026BCA0482</span>
+            </div>
+            <div class="meta-item">
+              <span class="meta-label">Program / Course:</span>
+              <span class="meta-value" id="renderCourseName">Bachelor of Computer Applications (BCA)</span>
+            </div>
+            <div class="meta-item">
+              <span class="meta-label">Examination Session:</span>
+              <span class="meta-value" id="renderExamSession">Semester II Examination 2025-2026</span>
+            </div>
+          </div>
+
+          <!-- Academic Table -->
+          <table class="report-table">
+            <thead>
+              <tr>
+                <th rowspan="2" class="col-sno">S.No.</th>
+                <th rowspan="2" class="col-subj">Subject Title</th>
+                <th colspan="2" class="col-group">Written Examination</th>
+                <th colspan="2" class="col-group">Practical Assessment</th>
+                <th colspan="2" class="col-group">Aggregate Marks</th>
+                <th rowspan="2" class="col-grade">Grade</th>
+                <th rowspan="2" class="col-status">Status</th>
+              </tr>
+              <tr class="sub-header">
+                <th>Max</th>
+                <th>Obt.</th>
+                <th>Max</th>
+                <th>Obt.</th>
+                <th>Max</th>
+                <th>Obt.</th>
+              </tr>
+            </thead>
+            <tbody id="reportTableBody">
+              <!-- Rendered rows -->
+            </tbody>
+            <tfoot>
+              <tr class="grand-total-row">
+                <td colspan="2" class="text-bold text-left">GRAND TOTAL</td>
+                <td id="renderTotalWrittenMax" class="text-center font-mono">0</td>
+                <td id="renderTotalWrittenObt" class="text-center font-mono">0</td>
+                <td id="renderTotalPracticalMax" class="text-center font-mono">0</td>
+                <td id="renderTotalPracticalObt" class="text-center font-mono">0</td>
+                <td id="renderGrandTotalMax" class="text-center font-mono">0</td>
+                <td id="renderGrandTotalObt" class="text-center font-mono">0</td>
+                <td id="renderOverallGrade" class="text-center text-bold">—</td>
+                <td id="renderFinalStatus" class="text-center text-bold">—</td>
+              </tr>
+            </tfoot>
+          </table>
+
+          <!-- Result Performance Summary & Legend -->
+          <div class="summary-and-grading-box">
+            <div class="summary-card-inner">
+              <div class="summary-row">
+                <span class="sum-label">Aggregate Marks:</span>
+                <span class="sum-val" id="summaryAggregate">0 / 0</span>
+              </div>
+              <div class="summary-row">
+                <span class="sum-label">Overall Percentage:</span>
+                <span class="sum-val highlight" id="summaryPercentage">0.00%</span>
+              </div>
+              <div class="summary-row">
+                <span class="sum-label">Final Division / Grade:</span>
+                <span class="sum-val" id="summaryGrade">—</span>
+              </div>
+              <div class="summary-row">
+                <span class="sum-label">Final Examination Result:</span>
+                <span class="sum-val result-badge-text" id="summaryFinalResult">—</span>
+              </div>
+            </div>
+
+            <div class="grading-scale-table">
+              <div class="legend-title">Institutional Grading Key</div>
+              <table class="scale-table">
+                <tr><th>Marks Range</th><th>Grade</th><th>Qualitative Remark</th></tr>
+                <tr><td>90% - 100%</td><td>A+</td><td>Outstanding Performance</td></tr>
+                <tr><td>80% - 89.9%</td><td>A</td><td>Excellent Performance</td></tr>
+                <tr><td>70% - 79.9%</td><td>B</td><td>Very Good</td></tr>
+                <tr><td>60% - 69.9%</td><td>C</td><td>Good</td></tr>
+                <tr><td>50% - 59.9%</td><td>D</td><td>Satisfactory / Pass</td></tr>
+                <tr><td>Below 50%</td><td>F</td><td>Unsatisfactory / Re-appear</td></tr>
+              </table>
+            </div>
+          </div>
+
+          <!-- Signatures Section -->
+          <div class="signatures-section">
+            <div class="signature-block">
+              <div class="sign-line"></div>
+              <span class="sign-title">Prepared &amp; Verified By</span>
+            </div>
+            <div class="signature-block center-stamp">
+              <div class="seal-placeholder">
+                <span>OFFICIAL SEAL</span>
+              </div>
+              <span class="sign-title">Registrar / Academic Office</span>
+            </div>
+            <div class="signature-block">
+              <div class="sign-line"></div>
+              <span class="sign-title">Controller of Examinations</span>
+            </div>
+          </div>
+
+          <!-- Document Footer -->
+          <div class="doc-footer">
+            <span>Date of Issue: <strong id="currentDateString"></strong></span>
+            <span>Computer Generated Official Academic Transcript</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
